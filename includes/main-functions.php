@@ -44,3 +44,13 @@ function open_wp_backup_menu() {
     include_once PLUGIN_ROOT_DIR . 'admin/views/main.php';
 }
 
+// Create notice
+function open_wp_backup_admin_notice($message, $result = 'success', $redirect = false, $url = 'open-wp-backup') {
+    $data = array('result' => $result, 'message' => $message);
+    set_transient('open_wp_backup_message', $data, 60);
+
+    if ($redirect) {
+        wp_redirect(admin_url('admin.php?page=' . $url));
+        exit;
+    }
+}
