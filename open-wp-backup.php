@@ -20,6 +20,7 @@ defined('PLUGIN_ROOT_DIR') or define('PLUGIN_ROOT_DIR', plugin_dir_path( __FILE_
 
 // Include necessary files
 include_once __DIR__ . '/includes/main-functions.php';
+include_once __DIR__ . '/includes/backup-functions.php';
 
 // Register activation and deactivation hooks
 register_activation_hook(__FILE__, 'open_wp_backup_activate');

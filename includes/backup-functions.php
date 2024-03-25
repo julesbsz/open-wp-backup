@@ -7,6 +7,8 @@
  */
 
 function open_wp_backup_start_backup() {
+    error_log('Open WP Backup: Starting backup process.');
+
     // Checking if nonce is set
     if(!wp_verify_nonce($_REQUEST['open_wp_backup_create_backup_nonce'], 'open_wp_backup_create_backup_action')){
         wp_die('Failed security check');
@@ -18,13 +20,22 @@ function open_wp_backup_start_backup() {
     }
 
     // Checking if backup directory exists
-    $backup_files_path = WP_CONTENT_DIR . '/backups/';
+    $backup_files_path = WP_CONTENT_DIR . '/open-wp-backups/';
     if (!file_exists($backup_files_path)) {
+        error_log('Open WP Backup: Backup directory does not exist.');
         if (!wp_mkdir_p($backup_files_path)) {
             error_log('Open WP Backup: Failed to create backup directory.');
             die('Failed to create backup directory.');
             exit;
         }
+
+        if (!is_writable($backup_files_path)) {
+            error_log('Open WP Backup: Backup directory is not writable.');
+            die('Backup directory is not writable.');
+            exit;
+        }
+
+        error_log('Open WP Backup: Backup directory created successfully.');
     }
 
     $rootPath = ABSPATH; 
