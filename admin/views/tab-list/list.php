@@ -10,15 +10,19 @@
             echo '<th>' . esc_html__('Name', 'wp-backup-plugin') . '</th>';
             echo '<th>' . esc_html__('Date', 'wp-backup-plugin') . '</th>';
             echo '<th>' . esc_html__('Size', 'wp-backup-plugin') . '</th>';
+            echo '<th>' . esc_html__('Download Link', 'wp-backup-plugin') . '</th>';
             echo '</tr>';
             echo '</thead>';
             echo '<tbody>';
         
             foreach ($backups as $backup) {
+                $downloadLink = admin_url('admin-post.php?action=open_wp_backup_download&file=' . urlencode($backup['name']));
+
                 echo '<tr>';
                 echo '<td>' . esc_html($backup['name']) . '</td>';
                 echo '<td>' . esc_html($backup['date']) . '</td>';
                 echo '<td>' . esc_html($backup['size']) . '</td>';
+                echo '<td><a href="' . esc_url($downloadLink) . '">' . esc_html__('Download', 'wp-backup-plugin') . '</a></td>';
                 echo '</tr>';
             }
         
