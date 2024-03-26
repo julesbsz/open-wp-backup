@@ -172,3 +172,32 @@ function open_wp_backup_download() {
     }
 }
 add_action('admin_post_open_wp_backup_download', 'open_wp_backup_download');
+
+/**
+ * 
+ * Delete a backup file.
+ *
+ */
+function open_wp_backup_delete() {
+    if (current_user_can('manage_options')) {
+        // TODO: Add nonce check
+
+        $fileName = isset($_GET['file']) ? sanitize_file_name($_GET['file']) : null;
+        $filePath = WP_CONTENT_DIR . '/open-wp-backups/' . $fileName;
+
+        if (file_exists($filePath) && is_file($filePath)) {
+            unlink($filePath);
+            open_wp_backup_admin_notice('Backup deleted successfully.', 'success', true, 'open-wp-backup&tab=list');
+            exit;
+        } else {
+            error_log('The requested backup file could not be found or is not valid.');
+            open_wp_backup_admin_notice('The requested backup file could not be found or is not valid.', 'error', true);
+            exit;
+        }
+    } else {
+        error_log('You do not have permission to perform this action.');
+        open_wp_backup_admin_notice('You do not have permission to perform this action.', 'error', true);
+        exit;
+    }
+}
+add_action('admin_post_open_wp_backup_delete', 'open_wp_backup_delete');
