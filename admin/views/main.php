@@ -19,11 +19,16 @@
 
     <h2 class="nav-tab-wrapper">
         <a href="?page=open-wp-backup&tab=home" class="nav-tab <?php echo $active_tab == 'home' ? 'nav-tab-active' : ''; ?>">Create Backup</a>
+        <a href="?page=open-wp-backup&tab=list" class="nav-tab <?php echo $active_tab == 'list' ? 'nav-tab-active' : ''; ?>">List of Backups</a>
     </h2>
 
     <?php
         if ($active_tab == 'home') {
             include_once __DIR__ . '/tab-home/home.php';
+        }
+
+        if ($active_tab == 'list') {
+            include_once __DIR__ . '/tab-list/list.php';
         }
     ?>
 </div>

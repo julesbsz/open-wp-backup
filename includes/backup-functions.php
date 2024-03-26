@@ -1,6 +1,7 @@
 <?php
 
 use Ifsnop\Mysqldump as IMysqldump;
+
 /**
  * 
  * Start a new backup of wordpress.
@@ -103,3 +104,100 @@ function open_wp_backup_start_backup() {
 }
 add_action('admin_post_open_wp_backup_start_backup', 'open_wp_backup_start_backup');
 
+/**
+ * 
+ * Get all previous backups.
+ * 
+ * @return array
+ *
+*/
+function open_wp_list_backups() {
+    $backupDir = WP_CONTENT_DIR . '/open-wp-backups/';
+    $backupFiles = glob($backupDir . 'open-wp-backup-*.zip');
+
+    $backups = [];
+
+    foreach ($backupFiles as $file) {
+        $filename = basename($file);
+        
+        $datePart = str_replace(['open-wp-backup-', '.zip'], '', $filename);
+        $date = DateTime::createFromFormat('Y-m-d_H-i-s', $datePart);
+
+        if ($date !== false) {
+            $size = filesize($file);
+
+            $sizeFormatted = size_format($size, 2);
+
+            $backups[] = [
+                'name' => $filename,
+                'date' => $date->format('Y-m-d H:i:s'), 
+                'size' => $sizeFormatted
+            ];
+        }
+    }
+
+    return $backups;
+}
+
+/**
+ * 
+ * Download a backup file.
+ *
+ */
+function open_wp_backup_download() {
+    if (current_user_can('manage_options')) {
+        $fileName = isset($_GET['file']) ? sanitize_file_name($_GET['file']) : null;
+        $filePath = WP_CONTENT_DIR . '/open-wp-backups/' . $fileName;
+
+        if (file_exists($filePath) && is_file($filePath)) {
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename="' . basename($filePath) . '"');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize($filePath));
+            flush();
+            readfile($filePath);
+            exit;
+        } else {
+            error_log('Open WP Backup: File not found: ' . $filePath);
+            open_wp_backup_admin_notice('File not found.', 'error', true);
+            exit;
+        }
+    } else {
+        error_log('Open WP Backup: You do not have permission to perform this action.');
+        open_wp_backup_admin_notice('You do not have permission to perform this action.', 'error', true);
+        exit;
+    }
+}
+add_action('admin_post_open_wp_backup_download', 'open_wp_backup_download');
+
+/**
+ * 
+ * Delete a backup file.
+ *
+ */
+function open_wp_backup_delete() {
+    if (current_user_can('manage_options')) {
+        // TODO: Add nonce check
+
+        $fileName = isset($_GET['file']) ? sanitize_file_name($_GET['file']) : null;
+        $filePath = WP_CONTENT_DIR . '/open-wp-backups/' . $fileName;
+
+        if (file_exists($filePath) && is_file($filePath)) {
+            unlink($filePath);
+            open_wp_backup_admin_notice('Backup deleted successfully.', 'success', true, 'open-wp-backup&tab=list');
+            exit;
+        } else {
+            error_log('The requested backup file could not be found or is not valid.');
+            open_wp_backup_admin_notice('The requested backup file could not be found or is not valid.', 'error', true);
+            exit;
+        }
+    } else {
+        error_log('You do not have permission to perform this action.');
+        open_wp_backup_admin_notice('You do not have permission to perform this action.', 'error', true);
+        exit;
+    }
+}
+add_action('admin_post_open_wp_backup_delete', 'open_wp_backup_delete');
