@@ -1,5 +1,19 @@
 <?php $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'home'; ?>
 
+<?php
+    $data = get_transient('open_wp_backup_message');
+
+    if ($data !== false) {
+        if ($data['result'] == 'success') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html($data['message']) . '</p></div>';
+        } elseif ($data['result'] == 'error') {
+            echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($data['message']) . '</p></div>';
+        }
+
+        delete_transient('open_wp_backup_message');
+    }
+?>
+
 <div class="wrap">
     <h2>Open WP Backup</h2>
 
