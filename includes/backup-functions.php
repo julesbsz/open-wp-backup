@@ -58,6 +58,11 @@ function open_wp_backup_start_backup() {
         if (!$file->isDir()) {
             $filePath = $file->getRealPath();
             $relativePath = 'wordpress/' . substr($filePath, strlen($rootPath));
+
+            if (strpos($filePath, $backup_files_path) === 0) {
+                continue;
+            }
+
             if (!$zip->addFile($filePath, $relativePath)) {
                 error_log('Open WP Backup: Failed to add file to zip archive: ' . $filePath);
                 open_wp_backup_admin_notice('Failed to add file to zip archive: ' . $filePath, 'error', true);
