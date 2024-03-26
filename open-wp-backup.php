@@ -19,6 +19,8 @@ if (!defined('ABSPATH')) {
 defined('PLUGIN_ROOT_DIR') or define('PLUGIN_ROOT_DIR', plugin_dir_path( __FILE__ ));
 
 // Include necessary files
+require_once __DIR__ . '/vendor/autoload.php';
+
 include_once __DIR__ . '/includes/main-functions.php';
 include_once __DIR__ . '/includes/backup-functions.php';
 

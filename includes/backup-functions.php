@@ -1,11 +1,11 @@
 <?php
 
+use Ifsnop\Mysqldump as IMysqldump;
 /**
  * 
  * Start a new backup of wordpress.
  *
  */
-
 function open_wp_backup_start_backup() {
     error_log('Open WP Backup: Starting backup process.');
 
@@ -56,13 +56,33 @@ function open_wp_backup_start_backup() {
     foreach ($files as $name => $file) {
         if (!$file->isDir()) {
             $filePath = $file->getRealPath();
-            $relativePath = substr($filePath, strlen($rootPath));
+            $relativePath = 'wordpress/' . substr($filePath, strlen($rootPath));
             if (!$zip->addFile($filePath, $relativePath)) {
                 error_log('Open WP Backup: Failed to add file to zip archive: ' . $filePath);
                 open_wp_backup_admin_notice('Failed to add file to zip archive: ' . $filePath, 'error', true);
                 exit;
             }
         }
+    }
+
+    // Backup the database
+    try {
+        $dumpSettings = array('add-drop-table' => true);
+        $dump = new IMysqldump\Mysqldump('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD, $dumpSettings);
+        
+        $dbBackupFilePath = $backup_files_path . 'wp_db_backup-' . date('Y-m-d_H-i-s') . '.sql';
+        $dump->start($dbBackupFilePath);
+
+        if (!$zip->addFile($dbBackupFilePath, basename($dbBackupFilePath))) {
+            error_log('Open WP Backup: Failed to add database backup to zip archive: ' . $dbBackupFilePath);
+            open_wp_backup_admin_notice('Failed to add database backup to zip archive: ' . $dbBackupFilePath, 'error', true);
+            exit;
+        }
+
+    } catch (\Exception $e) {
+        error_log('Open WP Backup: ' . $e->getMessage());
+        open_wp_backup_admin_notice('Database backup error: ' . $e->getMessage(), 'error', true);
+        return;
     }
     
     if (!$zip->close()) {
@@ -71,8 +91,15 @@ function open_wp_backup_start_backup() {
         exit;
     }
 
+    if (file_exists($dbBackupFilePath) && is_writable($dbBackupFilePath)) {
+        unlink($dbBackupFilePath);
+    } else {
+        error_log('Open WP Backup: Unable to locate or delete the temporary database backup file.');
+    }
+
     error_log('Open WP Backup: Backup completed successfully.');
     open_wp_backup_admin_notice('Backup completed successfully.', 'success', true);
     exit;
 }
 add_action('admin_post_open_wp_backup_start_backup', 'open_wp_backup_start_backup');
+
