@@ -1,6 +1,7 @@
 <?php
 
 use Ifsnop\Mysqldump as IMysqldump;
+
 /**
  * 
  * Start a new backup of wordpress.
@@ -103,3 +104,37 @@ function open_wp_backup_start_backup() {
 }
 add_action('admin_post_open_wp_backup_start_backup', 'open_wp_backup_start_backup');
 
+/**
+ * 
+ * Get all previous backups.
+ * 
+ * @return array
+ *
+*/
+function open_wp_list_backups() {
+    $backupDir = WP_CONTENT_DIR . '/open-wp-backups/';
+    $backupFiles = glob($backupDir . 'open-wp-backup-*.zip');
+
+    $backups = [];
+
+    foreach ($backupFiles as $file) {
+        $filename = basename($file);
+        
+        $datePart = str_replace(['open-wp-backup-', '.zip'], '', $filename);
+        $date = DateTime::createFromFormat('Y-m-d_H-i-s', $datePart);
+
+        if ($date !== false) {
+            $size = filesize($file);
+
+            $sizeFormatted = size_format($size, 2);
+
+            $backups[] = [
+                'name' => $filename,
+                'date' => $date->format('Y-m-d H:i:s'), 
+                'size' => $sizeFormatted
+            ];
+        }
+    }
+
+    return $backups;
+}
