@@ -5,6 +5,10 @@
         $backups = open_wp_list_backups();
         if (!empty($backups)) {
             echo '<p>' . esc_html__('You have a total of ', 'wp-backup-plugin') . '<b>' . count($backups) . '</b>' . esc_html__(' backup(s)', 'wp-backup-plugin') . '</p>';
+
+            usort($backups, function($a, $b) {
+                return strtotime($b['date']) - strtotime($a['date']);
+            });
             
             echo '<table class="wp-list-table widefat fixed striped">';
             echo '<thead>';
